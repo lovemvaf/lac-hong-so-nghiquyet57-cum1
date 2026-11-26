@@ -1,0 +1,412 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="LẠC HỒNG SỐ – Nghị quyết 57 đến gần thanh niên Cụm 1 | Trại Thanh niên số thành phố Đồng Nai 2026"
+    />
+    <title>LẠC HỒNG SỐ – Nghị quyết 57 đến gần thanh niên Cụm 1</title>
+    <link rel="icon" type="image/png" href="./assets/identity/derived/huy-hieu-doan-clean.png" />
+  </head>
+  <body>
+    <canvas id="lac-hong-canvas" aria-hidden="true"></canvas>
+    <div class="heritage-vignette" aria-hidden="true"></div>
+
+    <main class="reveal" id="lhs-reveal">
+      <div class="slides">
+        <!-- STAGE 0: LANDING -->
+        <section id="stage-landing" class="stage-section" data-stage="0" aria-label="Mở đầu triển lãm Lạc Hồng Số">
+          <div class="dong-son-backdrop" aria-hidden="true">
+            <svg
+              id="landing-dong-son-svg"
+              class="dong-son-svg"
+              viewBox="0 0 800 800"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <!-- Populated crisply with 16-ray solar center, fret rings & Chim Lạc band -->
+            </svg>
+          </div>
+
+          <div class="landing-card">
+            <div class="landing-crest-row">
+              <span class="emblem-pill">
+                <img
+                  src="./assets/identity/derived/huy-hieu-doan-clean.png"
+                  alt="Huy hiệu Đoàn Thanh niên Cộng sản Hồ Chí Minh"
+                />
+              </span>
+              <div class="landing-meta-stack">
+                <p class="landing-eyebrow">CỤM 1 · TRẠI THANH NIÊN SỐ THÀNH PHỐ ĐỒNG NAI 2026</p>
+                <span class="landing-topic-badge">CHỦ ĐỀ 1 · NGHỊ QUYẾT 57-NQ/TW</span>
+              </div>
+            </div>
+
+            <div class="landing-hero-copy">
+              <h1 class="landing-title">LẠC HỒNG SỐ</h1>
+              <p class="landing-subtitle">Nghị quyết 57 đến gần thanh niên Cụm 1</p>
+              <p class="landing-tagline">
+                <span class="tagline-dot" aria-hidden="true"></span>
+                Hiểu đúng – Làm thật – Lan tỏa giá trị số
+              </p>
+              <p class="landing-intro">
+                Triển lãm trực quan gồm 05 ấn phẩm theo mạch Lạc Hồng Số: đưa Nghị quyết 57-NQ/TW từ
+                nhận thức học tập của người trẻ đến hành động thiết thực và lan tỏa trong cộng đồng Cụm 1.
+              </p>
+            </div>
+
+            <div id="landing-beats" class="landing-beats" role="list" aria-label="Xem trước 05 ấn phẩm">
+              <button type="button" class="beat-card" data-jump-stage="1" role="listitem">
+                <img src="./assets/posters/01_KhoiNguonNhanThuc.png" alt="Ấn phẩm 01/05 - Khởi nguồn nhận thức" />
+                <span class="beat-meta">
+                  <span class="beat-num">01/05</span>
+                  <span class="beat-label">KHỞI NGUỒN NHẬN THỨC</span>
+                </span>
+              </button>
+              <button type="button" class="beat-card" data-jump-stage="2" role="listitem">
+                <img src="./assets/posters/02_HieuDungNoiDung.png" alt="Ấn phẩm 02/05 - Hiểu đúng nội dung" />
+                <span class="beat-meta">
+                  <span class="beat-num">02/05</span>
+                  <span class="beat-label">HIỂU ĐÚNG NỘI DUNG</span>
+                </span>
+              </button>
+              <button type="button" class="beat-card" data-jump-stage="3" role="listitem">
+                <img src="./assets/posters/03_HanhDongThietThuc.png" alt="Ấn phẩm 03/05 - Hành động thiết thực" />
+                <span class="beat-meta">
+                  <span class="beat-num">03/05</span>
+                  <span class="beat-label">HÀNH ĐỘNG THIẾT THỰC</span>
+                </span>
+              </button>
+              <button type="button" class="beat-card" data-jump-stage="4" role="listitem">
+                <img src="./assets/posters/04_LanToaCongDong.png" alt="Ấn phẩm 04/05 - Lan tỏa trong cộng đồng" />
+                <span class="beat-meta">
+                  <span class="beat-num">04/05</span>
+                  <span class="beat-label">LAN TỎA TRONG CỘNG ĐỒNG</span>
+                </span>
+              </button>
+              <button type="button" class="beat-card" data-jump-stage="5" role="listitem">
+                <img src="./assets/posters/05_KhatVongLacHongSo.png" alt="Ấn phẩm 05/05 - Khát vọng Lạc Hồng Số" />
+                <span class="beat-meta">
+                  <span class="beat-num">05/05</span>
+                  <span class="beat-label">KHÁT VỌNG LẠC HỒNG SỐ</span>
+                </span>
+              </button>
+            </div>
+
+            <div class="landing-actions">
+              <button type="button" id="btn-start" class="btn-primary-gold">
+                <span>Khám phá bộ 05 ấn phẩm</span>
+                <span aria-hidden="true">→</span>
+              </button>
+            </div>
+
+            <div class="landing-footer-note">
+              <p>Nguồn: Nghị quyết 57-NQ/TW, Bộ Chính trị (22/12/2024).</p>
+              <p>
+                Minh họa 2D bán hiện thực được thực hiện với sự hỗ trợ của công cụ AI; nhân vật và bối cảnh là giả lập truyền thông.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <!-- STAGES 1–5: POSTER EXHIBITION SPLIT VIEW -->
+        <section id="stage-poster" class="stage-section" data-stage="1" aria-label="Trình chiếu bộ 05 ấn phẩm">
+          <div class="poster-split-shell">
+            <div class="poster-showcase-col">
+              <button
+                type="button"
+                id="poster-frame-btn"
+                class="poster-frame-btn"
+                aria-label="Phóng to ấn phẩm hiện tại (phím Z)"
+              >
+                <img
+                  id="poster-stage-img"
+                  src="./assets/posters/01_KhoiNguonNhanThuc.png"
+                  alt="Ấn phẩm 01/05 – NGHỊ QUYẾT 57 GẦN THANH NIÊN THẾ NÀO?"
+                />
+              </button>
+              <div class="poster-frame-caption">
+                <span id="poster-filename-chip">01_KhoiNguonNhanThuc.png</span>
+                <button type="button" id="btn-inline-zoom" class="inline-zoom-chip">
+                  Phóng to (Z)
+                </button>
+              </div>
+            </div>
+
+            <aside class="editorial-panel" aria-label="Bảng thuyết minh ấn phẩm">
+              <div class="panel-header-row">
+                <span class="emblem-pill emblem-pill-sm">
+                  <img
+                    src="./assets/identity/derived/huy-hieu-doan-clean.png"
+                    alt="Huy hiệu Đoàn Thanh niên Cộng sản Hồ Chí Minh"
+                  />
+                </span>
+                <span class="panel-org-label">CỤM 1 · NGHỊ QUYẾT 57-NQ/TW</span>
+                <span id="stage-badge" class="stage-badge">01 / 05</span>
+              </div>
+
+              <nav id="stage-pills-nav" class="stage-pills-nav" aria-label="Chọn giai đoạn triển lãm"></nav>
+
+              <div class="panel-story-head">
+                <span id="panel-role" class="panel-role-tag">KHỞI NGUỒN NHẬN THỨC</span>
+                <h2 id="panel-title" class="panel-title">NGHỊ QUYẾT 57 GẦN THANH NIÊN THẾ NÀO?</h2>
+                <p id="panel-subtitle" class="panel-subtitle">
+                  Bắt đầu từ học tập, công nghệ và đời sống hằng ngày.
+                </p>
+                <p id="panel-micro-note" class="panel-micro-note" hidden></p>
+              </div>
+
+              <p id="panel-summary" class="panel-summary"></p>
+
+              <div class="motif-card" aria-label="Minh họa gợi nhớ chủ đề">
+                <div class="motif-card-head">
+                  <span id="motif-title" class="motif-title">Sổ tay tri thức &amp; thiết bị số</span>
+                </div>
+                <div id="motif-art" class="motif-art"></div>
+                <ul id="motif-pills" class="motif-pills"></ul>
+              </div>
+
+              <div id="speaker-cue-panel" class="speaker-cue-panel">
+                <button
+                  type="button"
+                  id="btn-cue-toggle"
+                  class="cue-toggle-btn"
+                  aria-expanded="true"
+                  aria-controls="speaker-cue-body"
+                >
+                  <span>Lời dẫn thuyết trình (N)</span>
+                  <span id="cue-chevron" aria-hidden="true">▾</span>
+                </button>
+                <div id="speaker-cue-body" class="speaker-cue-body">
+                  <p id="speaker-cue-text"></p>
+                </div>
+              </div>
+
+              <div id="panel-official-wrap" class="panel-official-wrap" hidden>
+                <a
+                  id="btn-official-link"
+                  class="btn-official-cta"
+                  href="https://mst.gov.vn/toan-van-nghi-quyet-57-nq-tw-ve-dot-pha-phat-trien-khoa-hoc-cong-nghe-doi-moi-sang-tao-va-chuyen-doi-so-quoc-gia-197250813164610621.htm"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <span>Đọc toàn văn Nghị quyết 57-NQ/TW (mst.gov.vn)</span>
+                  <span aria-hidden="true">↗</span>
+                </a>
+              </div>
+            </aside>
+          </div>
+        </section>
+
+        <!-- STAGE 6: FINALE / CTA -->
+        <section id="stage-finale" class="stage-section" data-stage="6" aria-label="Tổng kết chiến dịch Lạc Hồng Số">
+          <div class="dong-son-backdrop dong-son-backdrop-finale" aria-hidden="true">
+            <svg
+              id="finale-dong-son-svg"
+              class="dong-son-svg"
+              viewBox="0 0 800 800"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            ></svg>
+          </div>
+
+          <div class="finale-card">
+            <div class="finale-top-row">
+              <span class="emblem-pill emblem-pill-sm">
+                <img
+                  src="./assets/identity/derived/huy-hieu-doan-clean.png"
+                  alt="Huy hiệu Đoàn Thanh niên Cộng sản Hồ Chí Minh"
+                />
+              </span>
+              <span class="finale-badge">TỔNG KẾT CHIẾN DỊCH · LẠC HỒNG SỐ</span>
+            </div>
+
+            <h2 class="finale-heading">HIỂU ĐÚNG – LÀM THẬT – LAN TỎA GIÁ TRỊ SỐ</h2>
+            <p class="finale-summary">
+              Bộ 05 ấn phẩm khẳng định tinh thần đồng hành của thanh niên Cụm 1 với Nghị quyết 57-NQ/TW:
+              lấy người dân làm trung tâm, trau dồi tri thức số và lan tỏa lợi ích công nghệ thiết thực tại cơ sở.
+            </p>
+
+            <div id="finale-gallery" class="finale-gallery" aria-label="Thư viện 05 ấn phẩm">
+              <button type="button" class="finale-thumb-card" data-zoom-poster="1">
+                <div class="finale-thumb-img-wrap">
+                  <img src="./assets/posters/01_KhoiNguonNhanThuc.png" alt="Ấn phẩm 01/05 - Khởi nguồn nhận thức" />
+                </div>
+                <span class="finale-thumb-idx">01/05</span>
+                <span class="finale-thumb-role">KHỞI NGUỒN NHẬN THỨC</span>
+              </button>
+              <button type="button" class="finale-thumb-card" data-zoom-poster="2">
+                <div class="finale-thumb-img-wrap">
+                  <img src="./assets/posters/02_HieuDungNoiDung.png" alt="Ấn phẩm 02/05 - Hiểu đúng nội dung" />
+                </div>
+                <span class="finale-thumb-idx">02/05</span>
+                <span class="finale-thumb-role">HIỂU ĐÚNG NỘI DUNG</span>
+              </button>
+              <button type="button" class="finale-thumb-card" data-zoom-poster="3">
+                <div class="finale-thumb-img-wrap">
+                  <img src="./assets/posters/03_HanhDongThietThuc.png" alt="Ấn phẩm 03/05 - Hành động thiết thực" />
+                </div>
+                <span class="finale-thumb-idx">03/05</span>
+                <span class="finale-thumb-role">HÀNH ĐỘNG THIẾT THỰC</span>
+              </button>
+              <button type="button" class="finale-thumb-card" data-zoom-poster="4">
+                <div class="finale-thumb-img-wrap">
+                  <img src="./assets/posters/04_LanToaCongDong.png" alt="Ấn phẩm 04/05 - Lan tỏa trong cộng đồng" />
+                </div>
+                <span class="finale-thumb-idx">04/05</span>
+                <span class="finale-thumb-role">LAN TỎA TRONG CỘNG ĐỒNG</span>
+              </button>
+              <button type="button" class="finale-thumb-card" data-zoom-poster="5">
+                <div class="finale-thumb-img-wrap">
+                  <img src="./assets/posters/05_KhatVongLacHongSo.png" alt="Ấn phẩm 05/05 - Khát vọng Lạc Hồng Số" />
+                </div>
+                <span class="finale-thumb-idx">05/05</span>
+                <span class="finale-thumb-role">KHÁT VỌNG LẠC HỒNG SỐ</span>
+              </button>
+            </div>
+
+            <div class="finale-action-panel">
+              <div class="finale-qr-card">
+                <div id="finale-qr-box" class="finale-qr-box" aria-label="Mã QR toàn văn Nghị quyết 57-NQ/TW"></div>
+                <div class="finale-qr-meta">
+                  <span class="finale-qr-title">QUÉT MÃ ĐỐI CHIẾU VĂN BẢN GỐC</span>
+                  <p class="finale-qr-desc">
+                    Cổng Thông tin điện tử Bộ Khoa học và Công nghệ (mst.gov.vn)
+                  </p>
+                </div>
+              </div>
+
+              <div class="finale-cta-stack">
+                <a
+                  id="btn-finale-official"
+                  class="btn-official-cta btn-official-cta-lg"
+                  href="https://mst.gov.vn/toan-van-nghi-quyet-57-nq-tw-ve-dot-pha-phat-trien-khoa-hoc-cong-nghe-doi-moi-sang-tao-va-chuyen-doi-so-quoc-gia-197250813164610621.htm"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <span>Đọc toàn văn Nghị quyết 57-NQ/TW (mst.gov.vn)</span>
+                  <span aria-hidden="true">↗</span>
+                </a>
+                <div class="finale-secondary-actions">
+                  <button type="button" id="btn-replay" class="btn-secondary-cream">
+                    Xem lại từ ấn phẩm 01/05
+                  </button>
+                  <button type="button" id="btn-back-landing" class="btn-secondary-ghost">
+                    Về màn hình giới thiệu
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div class="finale-credits">
+              <p>
+                Cụm 1 · Trại Thanh niên số thành phố Đồng Nai 2026 | Nguồn: Nghị quyết 57-NQ/TW, Bộ Chính trị (22/12/2024).
+              </p>
+              <p>
+                Minh họa 2D bán hiện thực được thực hiện với sự hỗ trợ của công cụ AI; nhân vật và bối cảnh là giả lập truyền thông.
+              </p>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <!-- NON-STROBING TRANSITION OVERLAY -->
+    <div id="scene-transition-overlay" aria-hidden="true">
+      <div id="transition-veil" class="transition-veil"></div>
+      <div id="transition-light-sweep" class="transition-light-sweep"></div>
+      <svg id="transition-dongson-ripple" class="transition-dongson-ripple" viewBox="0 0 360 360" fill="none">
+        <circle cx="180" cy="180" r="68" stroke="#F0C14B" stroke-width="2" opacity="0.65" />
+        <circle cx="180" cy="180" r="112" stroke="#F7F3E8" stroke-width="1.4" stroke-dasharray="6 5" opacity="0.55" />
+        <circle cx="180" cy="180" r="158" stroke="#1464B4" stroke-width="2" opacity="0.5" />
+      </svg>
+      <svg id="transition-chimlac-flight" class="transition-chimlac-flight" viewBox="0 0 260 120" fill="none">
+        <path
+          d="M28 74 C56 44, 96 42, 124 64 C96 58, 66 64, 38 82 Z"
+          fill="#F0C14B"
+          fill-opacity="0.88"
+          stroke="#F7F3E8"
+          stroke-width="1.6"
+        />
+        <path
+          d="M92 52 C122 22, 166 20, 196 44 C166 37, 134 44, 102 62 Z"
+          fill="#F7F3E8"
+          fill-opacity="0.92"
+          stroke="#F0C14B"
+          stroke-width="1.6"
+        />
+        <path
+          d="M156 38 C178 18, 210 18, 234 34 C210 30, 186 35, 164 46 Z"
+          fill="#F0C14B"
+          fill-opacity="0.85"
+          stroke="#F7F3E8"
+          stroke-width="1.4"
+        />
+      </svg>
+    </div>
+
+    <!-- COMPACT SPEAKER CUE DRAWER (FOR STAGE 0 & STAGE 6 WHEN N PRESSED) -->
+    <div id="speaker-drawer" class="speaker-drawer" hidden role="region" aria-label="Lời dẫn thuyết trình">
+      <div class="speaker-drawer-head">
+        <span id="speaker-drawer-title">Lời dẫn thuyết trình</span>
+        <button type="button" id="btn-drawer-close" class="drawer-close-btn" aria-label="Đóng lời dẫn">✕</button>
+      </div>
+      <p id="speaker-drawer-text"></p>
+    </div>
+
+    <!-- MINIMAL BOTTOM HUD BAR -->
+    <nav id="hud-bar" class="hud-bar" aria-label="Điều hướng triển lãm">
+      <div class="hud-group hud-nav-group">
+        <button type="button" id="btn-prev" class="hud-btn hud-btn-nav">‹ Trước</button>
+        <span id="hud-progress" class="hud-progress" aria-live="polite">Mở đầu</span>
+        <button type="button" id="btn-next" class="hud-btn hud-btn-nav">Tiếp ›</button>
+      </div>
+      <span class="hud-divider" aria-hidden="true"></span>
+      <div class="hud-group hud-tools-group">
+        <button type="button" id="btn-notes" class="hud-btn" aria-pressed="true">Lời dẫn (N)</button>
+        <button type="button" id="btn-zoom" class="hud-btn">Phóng to (Z)</button>
+        <button type="button" id="btn-restart" class="hud-btn">Về đầu (R)</button>
+        <button type="button" id="btn-lite" class="hud-btn" aria-pressed="false">Chế độ nhẹ (L)</button>
+        <button type="button" id="btn-fullscreen" class="hud-btn" aria-pressed="false">Toàn màn hình (F)</button>
+      </div>
+    </nav>
+
+    <!-- HIGH-RES ZOOM LIGHTBOX MODAL -->
+    <div
+      id="lightbox-modal"
+      class="lightbox-modal"
+      hidden
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="lightbox-title"
+    >
+      <div class="lightbox-backdrop" data-close-lightbox="true"></div>
+      <div class="lightbox-dialog">
+        <div class="lightbox-toolbar">
+          <div class="lightbox-heading">
+            <span id="lightbox-index" class="lightbox-index">01 / 05</span>
+            <h3 id="lightbox-title" class="lightbox-title">NGHỊ QUYẾT 57 GẦN THANH NIÊN THẾ NÀO?</h3>
+          </div>
+          <div class="lightbox-controls">
+            <button type="button" id="btn-lightbox-prev" class="lightbox-nav-btn" aria-label="Ấn phẩm trước">‹</button>
+            <button type="button" id="btn-lightbox-next" class="lightbox-nav-btn" aria-label="Ấn phẩm tiếp">›</button>
+            <button type="button" id="btn-lightbox-close" class="lightbox-close-btn" aria-label="Đóng phóng to (Esc)">
+              Đóng (Esc)
+            </button>
+          </div>
+        </div>
+        <div class="lightbox-stage">
+          <img
+            id="lightbox-img"
+            src="./assets/posters/01_KhoiNguonNhanThuc.png"
+            alt="Phóng to ấn phẩm Lạc Hồng Số"
+          />
+        </div>
+      </div>
+    </div>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
