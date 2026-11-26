@@ -2,7 +2,7 @@
  * LẠC HỒNG SỐ — GSAP Stage Transition & Editorial Choreography Controller
  * Smooth 0.55–0.85s stage cuts alternating Light Sweep veil, Chim Lạc flight pass,
  * Đông Sơn radial ripple pulse, and soft parallax (1 clean cue per cut, zero strobing,
- * leaving every poster 100% still after settling).
+ * leaving every poster & Stage 3 policy numbers 100% still after settling).
  */
 
 import gsap from 'gsap';
@@ -136,10 +136,9 @@ export function createMotionController() {
           .to(sweep, { autoAlpha: 0, xPercent: 52, duration: 0.34, ease: 'power2.in' }, 0.34)
           .to(veil, { autoAlpha: 0, duration: 0.36, ease: 'power2.out' }, 0.26);
         if (panel) {
-          tl.fromTo(panel, { x: 16 }, { x: 0, duration: 0.44, ease: 'power3.out' }, 0.22);
+          tl.fromTo(panel, { x: 16 }, { x: 0, duration: 0.44, ease: 'power3.out', clearProps: 'transform' }, 0.22);
         }
       } else {
-        // light-sweep default
         tl.to(veil, { autoAlpha: 0.28, duration: 0.2, ease: 'power2.out' }, 0)
           .fromTo(
             sweep,
@@ -172,7 +171,7 @@ export function createMotionController() {
         '#stage-landing .landing-crest-row, #stage-landing .landing-title, #stage-landing .landing-subtitle, #stage-landing .landing-tagline, #stage-landing .landing-intro, #stage-landing .beat-card, #stage-landing .landing-actions'
       );
       if (card) {
-        tl.fromTo(card, { autoAlpha: 0.6, y: 14 }, { autoAlpha: 1, y: 0, duration: 0.42, ease: 'power3.out' }, 0);
+        tl.fromTo(card, { autoAlpha: 0.6, y: 14 }, { autoAlpha: 1, y: 0, duration: 0.42, ease: 'power3.out', clearProps: 'transform,opacity,visibility' }, 0);
       }
       if (items.length) {
         tl.fromTo(
@@ -184,12 +183,13 @@ export function createMotionController() {
       }
     } else if (stage >= 1 && stage <= 5) {
       const posterFrame = document.querySelector('#stage-poster .poster-frame-btn');
-      const panelItems = document.querySelectorAll(
-        '#stage-poster .panel-story-head, #stage-poster .panel-summary, #stage-poster .motif-card, #stage-poster .speaker-cue-panel, #stage-poster .panel-official-wrap'
-      );
+      const panelItems = Array.from(
+        document.querySelectorAll(
+          '#stage-poster .panel-story-head, #stage-poster .panel-summary, #stage-poster .panel-policy-highlights, #stage-poster .panel-fact-chips, #stage-poster .motif-card, #stage-poster .speaker-cue-panel, #stage-poster .panel-official-wrap, #stage-poster .panel-tools-row'
+        )
+      ).filter((el) => !el.hidden);
       const keyword = document.querySelector('#stage-poster .keyword-highlight');
 
-      // Poster fades in gently and remains 100% still afterwards
       if (posterFrame) {
         tl.fromTo(
           posterFrame,
@@ -202,8 +202,8 @@ export function createMotionController() {
       if (panelItems.length) {
         tl.fromTo(
           panelItems,
-          { autoAlpha: 0, y: 10 },
-          { autoAlpha: 1, y: 0, duration: 0.36, stagger: 0.05, ease: 'power2.out', clearProps: 'transform,opacity,visibility' },
+          { autoAlpha: 0, y: 8 },
+          { autoAlpha: 1, y: 0, duration: 0.34, stagger: 0.04, ease: 'power2.out', clearProps: 'transform,opacity,visibility' },
           0.04
         );
       }

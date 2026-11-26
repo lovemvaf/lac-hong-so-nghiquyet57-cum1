@@ -2,7 +2,19 @@ import { test, expect } from '@playwright/test';
 import fs from 'node:fs';
 import path from 'node:path';
 
-const SCREENSHOT_DIR = path.resolve(process.cwd(), 'test-results', 'lhs-screenshots');
+const SCREENSHOT_DIRS = [
+  path.resolve(process.cwd(), 'test-results', 'lhs-screenshots'),
+  path.resolve(process.cwd(), 'LacHongSo_Cum1_NQ57_2026', 'qa', 'screenshots'),
+];
+
+const CAMPAIGN_CONTENT_PATH = path.resolve(
+  process.cwd(),
+  'LacHongSo_Cum1_NQ57_2026',
+  'content',
+  'campaign-content.json'
+);
+const CAMPAIGN_CONTENT = JSON.parse(fs.readFileSync(CAMPAIGN_CONTENT_PATH, 'utf8'));
+
 const FORBIDDEN_20_11_TOKENS = [
   'Nét vẽ tri ân',
   'Nhà giáo',
@@ -12,45 +24,26 @@ const FORBIDDEN_20_11_TOKENS = [
   '20/11',
 ];
 
-const EXPECTED_POSTERS = [
-  {
-    stage: 1,
-    index: '01/05',
-    badge: '01 / 05',
-    filename: '01_KhoiNguonNhanThuc.png',
-    title: 'NGHỊ QUYẾT 57 GẦN THANH NIÊN THẾ NÀO?',
-  },
-  {
-    stage: 2,
-    index: '02/05',
-    badge: '02 / 05',
-    filename: '02_HieuDungNoiDung.png',
-    title: 'HIỂU ĐÚNG ĐỂ HÀNH ĐỘNG ĐÚNG',
-  },
-  {
-    stage: 3,
-    index: '03/05',
-    badge: '03 / 05',
-    filename: '03_HanhDongThietThuc.png',
-    title: 'THANH NIÊN HÀNH ĐỘNG',
-  },
-  {
-    stage: 4,
-    index: '04/05',
-    badge: '04 / 05',
-    filename: '04_LanToaCongDong.png',
-    title: 'TỪ MỘT NGƯỜI ĐẾN CẢ CỘNG ĐỒNG',
-  },
-  {
-    stage: 5,
-    index: '05/05',
-    badge: '05 / 05',
-    filename: '05_KhatVongLacHongSo.png',
-    title: 'HIỂU ĐÚNG – LÀM THẬT – LAN TỎA',
-  },
-];
+const EXPECTED_POSTERS = CAMPAIGN_CONTENT.posters.map((poster) => ({
+  stage: poster.id,
+  index: poster.index,
+  badge: poster.index.replace('/', ' / '),
+  filename: poster.filename,
+  title: poster.title,
+  role: poster.role,
+  hasQr: Boolean(poster.hasQr),
+}));
 
-fs.mkdirSync(SCREENSHOT_DIR, { recursive: true });
+for (const dir of SCREENSHOT_DIRS) {
+  fs.mkdirSync(dir, { recursive: true });
+}
+
+async function saveScreenshotEverywhere(page, filename) {
+  const buffer = await page.screenshot({ fullPage: false });
+  for (const dir of SCREENSHOT_DIRS) {
+    fs.writeFileSync(path.join(dir, filename), buffer);
+  }
+}
 
 function attachPurityMonitors(page) {
   const errors = [];
@@ -128,11 +121,12 @@ async function assertCleanDomPurity(page) {
 }
 
 async function assertPosterGeometry(page, viewport, posterMeta) {
-  const geom = await page.evaluate((expected) => {
+  const geom = await page.evaluate(() => {
     const img = document.getElementById('poster-stage-img');
     const frameBtn = document.getElementById('poster-frame-btn');
     const hudBar = document.getElementById('hud-bar');
-    if (!img || !frameBtn || !hudBar) {
+    const downloadLink = document.getElementById('btn-download-poster');
+    if (!img || !frameBtn || !hudBar || !downloadLink) {
       return { ok: false, reason: 'Missing DOM elements' };
     }
     const imgRect = img.getBoundingClientRect();
@@ -146,6 +140,8 @@ async function assertPosterGeometry(page, viewport, posterMeta) {
       naturalWidth: img.naturalWidth,
       naturalHeight: img.naturalHeight,
       objectFit: cs.objectFit,
+      downloadAttr: downloadLink.getAttribute('download'),
+      downloadHref: downloadLink.getAttribute('href'),
       imgRect: {
         left: imgRect.left,
         top: imgRect.top,
@@ -170,7 +166,7 @@ async function assertPosterGeometry(page, viewport, posterMeta) {
       motifSvgCount: document.querySelectorAll('#motif-art svg').length,
       docScrollWidth: document.documentElement.scrollWidth,
     };
-  }, posterMeta);
+  });
 
   expect(geom.ok).toBe(true);
   expect(geom.complete).toBe(true);
@@ -178,6 +174,8 @@ async function assertPosterGeometry(page, viewport, posterMeta) {
   expect(geom.naturalHeight).toBe(1350);
   expect(geom.objectFit).toBe('contain');
   expect(geom.src).toContain(posterMeta.filename);
+  expect(geom.downloadAttr).toBe(posterMeta.filename);
+  expect(geom.downloadHref).toBe(`./assets/posters/${posterMeta.filename}`);
   expect(geom.filenameChip).toBe(posterMeta.filename);
   expect(geom.badgeText).toBe(posterMeta.badge);
   expect(geom.titleText).toBe(posterMeta.title);
@@ -197,8 +195,53 @@ async function assertPosterGeometry(page, viewport, posterMeta) {
   }
 }
 
-test.describe('LẠC HỒNG SỐ — 7-Stage Exhibition QA Suite', () => {
-  test('1920x1080 full 7-stage flow, keyboard shortcuts, posters 01-05, finale QR & purity', async ({
+async function assertStage3PolicyHighlights(page) {
+  const policyPanel = page.locator('#panel-policy-highlights');
+  await expect(policyPanel).toBeVisible();
+  const text = await policyPanel.innerText();
+  for (const requiredToken of [
+    '2030',
+    '2045',
+    '30%',
+    '80%',
+    '50%',
+    'TOP 30',
+    'MỤC TIÊU',
+    'TẦM NHÌN',
+    'KHÔNG PHẢI KẾT QUẢ HIỆN TẠI',
+  ]) {
+    expect(text, `Stage 3 #panel-policy-highlights must include "${requiredToken}"`).toContain(
+      requiredToken
+    );
+  }
+}
+
+async function assertSourcesModalContent(page) {
+  const modal = page.locator('#sources-modal');
+  await expect(modal).toBeVisible();
+  const modalBodyText = await page.locator('#sources-modal-body').innerText();
+  const modalHtml = await page.locator('#sources-modal-body').innerHTML();
+
+  // 7 tasks grouped into 4 pillars
+  const pillarCount = await page.locator('#sources-modal-body .sources-pillar-card').count();
+  const taskCount = await page.locator('#sources-modal-body .sources-task-item').count();
+  const qaCount = await page.locator('#sources-modal-body .sources-qa-card').count();
+  expect(pillarCount).toBe(4);
+  expect(taskCount).toBe(7);
+  expect(qaCount).toBe(5);
+
+  for (const q of CAMPAIGN_CONTENT.evaluationQuestions) {
+    expect(modalBodyText).toContain(q.question);
+  }
+  expect(modalHtml).toContain('xaydungchinhsach.chinhphu.vn');
+  expect(modalHtml).toContain('mst.gov.vn');
+  expect(modalBodyText).toContain('03/NQ-CP');
+  expect(modalBodyText).toContain('71/NQ-CP');
+  expect(modalBodyText).toContain(CAMPAIGN_CONTENT.conceptNotice);
+}
+
+test.describe('LẠC HỒNG SỐ V2 — 7-Stage Exhibition QA Suite', () => {
+  test('1920x1080 full 7-stage flow, Stage 3 targets, download PNG, Sources modal, Zoom, Finale QR & purity', async ({
     page,
   }) => {
     await page.setViewportSize({ width: 1920, height: 1080 });
@@ -216,7 +259,8 @@ test.describe('LẠC HỒNG SỐ — 7-Stage Exhibition QA Suite', () => {
       const emblem = document.querySelector('#stage-landing .emblem-pill img');
       const startBtn = document.getElementById('btn-start');
       const beats = document.querySelectorAll('#landing-beats .beat-card');
-      const cardRect = document.querySelector('#stage-landing .landing-card')?.getBoundingClientRect();
+      const card = document.querySelector('#stage-landing .landing-card');
+      const cardRect = card?.getBoundingClientRect();
       const hudRect = document.getElementById('hud-bar')?.getBoundingClientRect();
       return {
         isPresent: section?.classList.contains('present'),
@@ -230,6 +274,8 @@ test.describe('LẠC HỒNG SỐ — 7-Stage Exhibition QA Suite', () => {
         startVisible: Boolean(startBtn && startBtn.offsetParent !== null),
         beatsCount: beats.length,
         cardBottom: cardRect?.bottom || 0,
+        cardScrollH: card?.scrollHeight || 0,
+        cardClientH: card?.clientHeight || 0,
         hudTop: hudRect?.top || 0,
       };
     });
@@ -245,14 +291,12 @@ test.describe('LẠC HỒNG SỐ — 7-Stage Exhibition QA Suite', () => {
     expect(landing.startVisible).toBe(true);
     expect(landing.beatsCount).toBe(5);
     expect(landing.cardBottom).toBeLessThanOrEqual(landing.hudTop + 2);
+    expect(landing.cardScrollH).toBeLessThanOrEqual(landing.cardClientH + 2);
     await assertCleanDomPurity(page);
 
-    await page.screenshot({
-      path: path.join(SCREENSHOT_DIR, 'landing_1920x1080.png'),
-      fullPage: false,
-    });
+    await saveScreenshotEverywhere(page, 'landing_1920x1080.png');
 
-    // Forward navigation: 6 clicks (#btn-start then 5x #btn-next) Landing -> 01..05 -> Finale
+    // Forward navigation: #btn-start -> 1, then #btn-next through 2..5
     await page.click('#btn-start');
     await waitForStageSettled(page, 1);
 
@@ -263,10 +307,34 @@ test.describe('LẠC HỒNG SỐ — 7-Stage Exhibition QA Suite', () => {
       }
       await assertPosterGeometry(page, { width: 1920, height: 1080 }, posterMeta);
       await assertCleanDomPurity(page);
-      await page.screenshot({
-        path: path.join(SCREENSHOT_DIR, `scene_0${posterMeta.stage}_1920x1080.png`),
-        fullPage: false,
-      });
+
+      if (posterMeta.stage === 3) {
+        // Mandatory: NO extra click inside Stage 3
+        await assertStage3PolicyHighlights(page);
+      }
+
+      await saveScreenshotEverywhere(page, `scene_0${posterMeta.stage}_1920x1080.png`);
+
+      if (posterMeta.stage === 3) {
+        // Capture Zoom Lightbox on Stage 3 + verify download button
+        await page.keyboard.press('KeyZ');
+        await expect(page.locator('#lightbox-modal')).toBeVisible();
+        await expect(page.locator('#lightbox-index')).toHaveText('03 / 05');
+        const lbDownload = page.locator('a#btn-lightbox-download');
+        await expect(lbDownload).toBeVisible();
+        await expect(lbDownload).toHaveAttribute('download', posterMeta.filename);
+        await expect(lbDownload).toHaveAttribute('href', `./assets/posters/${posterMeta.filename}`);
+        await saveScreenshotEverywhere(page, 'scene_03_zoom_1920x1080.png');
+        await page.keyboard.press('Escape');
+        await expect(page.locator('#lightbox-modal')).toBeHidden();
+
+        // Verify Sources modal opens from button click + closes via Escape
+        await page.click('#btn-sources-modal');
+        await assertSourcesModalContent(page);
+        await saveScreenshotEverywhere(page, 'sources_modal_1920x1080.png');
+        await page.keyboard.press('Escape');
+        await expect(page.locator('#sources-modal')).toBeHidden();
+      }
     }
 
     // 6th forward click -> Stage 6 Finale
@@ -279,17 +347,25 @@ test.describe('LẠC HỒNG SỐ — 7-Stage Exhibition QA Suite', () => {
       const qrSvg = document.querySelector('#finale-qr-box svg');
       const qrRect = qrSvg?.getBoundingClientRect();
       const officialLink = document.getElementById('btn-finale-official');
-      const cardRect = document.querySelector('#stage-finale .finale-card')?.getBoundingClientRect();
+      const secondaryLink = document.getElementById('btn-finale-secondary-official');
+      const card = document.querySelector('#stage-finale .finale-card');
+      const cardRect = card?.getBoundingClientRect();
       const hudRect = document.getElementById('hud-bar')?.getBoundingClientRect();
       return {
         isPresent: section?.classList.contains('present'),
         thumbCount: thumbs.length,
-        thumbsValid: thumbs.every((img) => img.complete && img.naturalWidth === 1080 && img.naturalHeight === 1350),
+        thumbsValid: thumbs.every(
+          (img) => img.complete && img.naturalWidth === 1080 && img.naturalHeight === 1350
+        ),
         hasQrSvg: Boolean(qrSvg),
         qrWidth: qrRect?.width || 0,
         qrHeight: qrRect?.height || 0,
+        qrShapeRendering: qrSvg ? window.getComputedStyle(qrSvg).shapeRendering : '',
         officialHref: officialLink?.getAttribute('href') || '',
+        secondaryHref: secondaryLink?.getAttribute('href') || '',
         cardBottom: cardRect?.bottom || 0,
+        cardScrollH: card?.scrollHeight || 0,
+        cardClientH: card?.clientHeight || 0,
         hudTop: hudRect?.top || 0,
       };
     });
@@ -300,19 +376,22 @@ test.describe('LẠC HỒNG SỐ — 7-Stage Exhibition QA Suite', () => {
     expect(finaleCheck.hasQrSvg).toBe(true);
     expect(finaleCheck.qrWidth).toBeGreaterThan(40);
     expect(finaleCheck.qrHeight).toBeGreaterThan(40);
-    expect(finaleCheck.officialHref).toContain('mst.gov.vn/toan-van-nghi-quyet-57-nq-tw');
+    expect(finaleCheck.officialHref).toContain('xaydungchinhsach.chinhphu.vn');
+    expect(finaleCheck.secondaryHref).toContain('mst.gov.vn');
     expect(finaleCheck.cardBottom).toBeLessThanOrEqual(finaleCheck.hudTop + 2);
+    expect(finaleCheck.cardScrollH).toBeLessThanOrEqual(finaleCheck.cardClientH + 2);
     await assertCleanDomPurity(page);
 
-    await page.screenshot({
-      path: path.join(SCREENSHOT_DIR, 'finale_1920x1080.png'),
-      fullPage: false,
-    });
+    await saveScreenshotEverywhere(page, 'finale_1920x1080.png');
 
-    // Test Finale thumbnail zoom lightbox
+    // Test Finale thumbnail zoom lightbox & download link for Poster 05
     await page.click('[data-zoom-poster="5"]');
     await expect(page.locator('#lightbox-modal')).toBeVisible();
     await expect(page.locator('#lightbox-index')).toHaveText('05 / 05');
+    await expect(page.locator('a#btn-lightbox-download')).toHaveAttribute(
+      'download',
+      EXPECTED_POSTERS[4].filename
+    );
     const lbImgNatural = await page.evaluate(() => {
       const img = document.getElementById('lightbox-img');
       return { w: img?.naturalWidth || 0, h: img?.naturalHeight || 0 };
@@ -322,6 +401,12 @@ test.describe('LẠC HỒNG SỐ — 7-Stage Exhibition QA Suite', () => {
     await page.keyboard.press('Escape');
     await expect(page.locator('#lightbox-modal')).toBeHidden();
 
+    // Verify KeyI shortcut opens Sources modal from anywhere & Escape closes
+    await page.keyboard.press('KeyI');
+    await assertSourcesModalContent(page);
+    await page.keyboard.press('Escape');
+    await expect(page.locator('#sources-modal')).toBeHidden();
+
     // Return to Landing using 6 #btn-prev clicks (6 -> 5 -> 4 -> 3 -> 2 -> 1 -> 0)
     for (let target = 5; target >= 0; target--) {
       await page.click('#btn-prev');
@@ -329,7 +414,7 @@ test.describe('LẠC HỒNG SỐ — 7-Stage Exhibition QA Suite', () => {
     }
     expect(await page.evaluate(() => window.__LHS_DECK__.getState().stage)).toBe(0);
 
-    // Also test 6 consecutive #btn-next clicks directly from Stage 0 -> Stage 6
+    // 6 consecutive #btn-next clicks directly from Stage 0 -> Stage 6
     for (let target = 1; target <= 6; target++) {
       await page.click('#btn-next');
       await waitForStageSettled(page, target);
@@ -343,7 +428,6 @@ test.describe('LẠC HỒNG SỐ — 7-Stage Exhibition QA Suite', () => {
     await page.keyboard.press('ArrowRight');
     await waitForStageSettled(page, 1);
 
-    // Blur button so Space triggers stage advance per slides-app.js
     await page.evaluate(() => document.activeElement?.blur?.());
     await page.keyboard.press('Space');
     await waitForStageSettled(page, 2);
@@ -351,7 +435,7 @@ test.describe('LẠC HỒNG SỐ — 7-Stage Exhibition QA Suite', () => {
     await page.keyboard.press('ArrowLeft');
     await waitForStageSettled(page, 1);
 
-    // Toggle Notes (N) on Poster stage
+    // Toggle Notes (N)
     const notesBefore = await page.evaluate(() => window.__LHS_DECK__.getState().isNotesOpen);
     await page.keyboard.press('KeyN');
     const notesAfter = await page.evaluate(() => window.__LHS_DECK__.getState().isNotesOpen);
@@ -374,9 +458,19 @@ test.describe('LẠC HỒNG SỐ — 7-Stage Exhibition QA Suite', () => {
     expect(liteAfter.hasClass).toBe(liteAfter.state);
     await page.keyboard.press('KeyL');
 
+    // Fullscreen toggle (#btn-fullscreen) — ensure visible, wired, and clean (no errors even if headless denies fullscreen)
+    await expect(page.locator('#btn-fullscreen')).toBeVisible();
+    await page.click('#btn-fullscreen');
+    const fullscreenAttr = await page.locator('#btn-fullscreen').getAttribute('aria-pressed');
+    expect(['true', 'false']).toContain(fullscreenAttr);
+    if (fullscreenAttr === 'true') {
+      await page.click('#btn-fullscreen');
+    }
+
     // Zoom (Z) + Escape
     await page.keyboard.press('KeyZ');
     await expect(page.locator('#lightbox-modal')).toBeVisible();
+    await expect(page.locator('a#btn-lightbox-download')).toBeVisible();
     await page.keyboard.press('Escape');
     await expect(page.locator('#lightbox-modal')).toBeHidden();
 
@@ -386,12 +480,19 @@ test.describe('LẠC HỒNG SỐ — 7-Stage Exhibition QA Suite', () => {
     await page.keyboard.press('KeyR');
     await waitForStageSettled(page, 0);
 
+    // Verify all 5 downloadable poster hrefs serve HTTP 200 PNGs
+    for (const posterMeta of EXPECTED_POSTERS) {
+      const res = await page.request.get(`./assets/posters/${posterMeta.filename}`);
+      expect(res.status(), `Downloadable PNG ${posterMeta.filename} must return HTTP 200`).toBe(200);
+      expect(res.headers()['content-type'] || '').toContain('image/png');
+    }
+
     expect(monitors.errors, 'Zero console/page/network errors').toEqual([]);
     expect(monitors.badResponses, 'Zero HTTP 4xx/5xx responses').toEqual([]);
     expect(monitors.externalRequests, 'Zero external CDN requests').toEqual([]);
   });
 
-  test('1366x768 laptop viewport: zero clipping on Landing, Posters 01-05, and Finale', async ({
+  test('1366x768 laptop viewport: zero clipping on Landing, Posters 01-05 (Stage 3 highlights), and Finale', async ({
     page,
   }) => {
     await page.setViewportSize({ width: 1366, height: 768 });
@@ -418,20 +519,15 @@ test.describe('LẠC HỒNG SỐ — 7-Stage Exhibition QA Suite', () => {
     expect(landingBounds.cardBottom).toBeLessThanOrEqual(landingBounds.hudTop + 2);
     expect(landingBounds.btnBottom).toBeLessThanOrEqual(landingBounds.hudTop + 2);
     expect(landingBounds.cardScrollHeight).toBeLessThanOrEqual(landingBounds.cardClientHeight + 2);
-    await page.screenshot({
-      path: path.join(SCREENSHOT_DIR, 'landing_1366x768.png'),
-      fullPage: false,
-    });
+    await saveScreenshotEverywhere(page, 'landing_1366x768.png');
 
     for (const posterMeta of EXPECTED_POSTERS) {
       await page.click('#btn-next');
       await waitForStageSettled(page, posterMeta.stage);
       await assertPosterGeometry(page, { width: 1366, height: 768 }, posterMeta);
-      if (posterMeta.stage === 1 || posterMeta.stage === 5) {
-        await page.screenshot({
-          path: path.join(SCREENSHOT_DIR, `scene_0${posterMeta.stage}_1366x768.png`),
-          fullPage: false,
-        });
+      if (posterMeta.stage === 3) {
+        await assertStage3PolicyHighlights(page);
+        await saveScreenshotEverywhere(page, 'scene_03_1366x768.png');
       }
     }
 
@@ -456,17 +552,14 @@ test.describe('LẠC HỒNG SỐ — 7-Stage Exhibition QA Suite', () => {
     expect(finaleBounds.cardScrollHeight).toBeLessThanOrEqual(finaleBounds.cardClientHeight + 2);
     await assertCleanDomPurity(page);
 
-    await page.screenshot({
-      path: path.join(SCREENSHOT_DIR, 'finale_1366x768.png'),
-      fullPage: false,
-    });
+    await saveScreenshotEverywhere(page, 'finale_1366x768.png');
 
     expect(monitors.errors).toEqual([]);
     expect(monitors.badResponses).toEqual([]);
     expect(monitors.externalRequests).toEqual([]);
   });
 
-  test('390x844 mobile viewport: clean vertical scroll and zero horizontal overflow', async ({
+  test('390x844 mobile viewport: clean vertical scroll, Stage 3 highlights, and zero horizontal overflow', async ({
     page,
   }) => {
     await page.setViewportSize({ width: 390, height: 844 });
@@ -487,28 +580,26 @@ test.describe('LẠC HỒNG SỐ — 7-Stage Exhibition QA Suite', () => {
     });
     expect(mobileLanding.overflowY).toBe('auto');
     expect(mobileLanding.scrollWidth).toBeLessThanOrEqual(390);
-    await page.screenshot({
-      path: path.join(SCREENSHOT_DIR, 'landing_390x844.png'),
-      fullPage: false,
-    });
+    await saveScreenshotEverywhere(page, 'landing_390x844.png');
 
-    // Verify clean scrolling and zero horizontal overflow across all stages 1..5 and Finale
     for (const posterMeta of EXPECTED_POSTERS) {
       await page.evaluate((s) => window.__LHS_DECK__.goToStage(s), posterMeta.stage);
       await waitForStageSettled(page, posterMeta.stage);
       await assertPosterGeometry(page, { width: 390, height: 844 }, posterMeta);
       const sw = await page.evaluate(() => document.documentElement.scrollWidth);
       expect(sw).toBeLessThanOrEqual(390);
+
+      if (posterMeta.stage === 3) {
+        await assertStage3PolicyHighlights(page);
+        await saveScreenshotEverywhere(page, 'scene_03_390x844.png');
+      }
+
       if (posterMeta.stage === 5) {
-        // Test real vertical scroll on mobile
         await page.evaluate(() => window.scrollTo(0, 260));
         const scrollY = await page.evaluate(() => window.scrollY);
         expect(scrollY).toBeGreaterThan(0);
         await page.evaluate(() => window.scrollTo(0, 0));
-        await page.screenshot({
-          path: path.join(SCREENSHOT_DIR, 'scene_05_390x844.png'),
-          fullPage: false,
-        });
+        await saveScreenshotEverywhere(page, 'scene_05_390x844.png');
       }
     }
 
@@ -517,12 +608,56 @@ test.describe('LẠC HỒNG SỐ — 7-Stage Exhibition QA Suite', () => {
     const mobileFinale = await page.evaluate(() => ({
       scrollWidth: document.documentElement.scrollWidth,
       hasQrSvg: Boolean(document.querySelector('#finale-qr-box svg')),
+      officialHref: document.getElementById('btn-finale-official')?.getAttribute('href') || '',
       overflowY: window.getComputedStyle(document.body).overflowY,
     }));
     expect(mobileFinale.scrollWidth).toBeLessThanOrEqual(390);
     expect(mobileFinale.hasQrSvg).toBe(true);
+    expect(mobileFinale.officialHref).toContain('xaydungchinhsach.chinhphu.vn');
     expect(mobileFinale.overflowY).toBe('auto');
     await assertCleanDomPurity(page);
+
+    expect(monitors.errors).toEqual([]);
+    expect(monitors.badResponses).toEqual([]);
+    expect(monitors.externalRequests).toEqual([]);
+  });
+
+  test('prefers-reduced-motion: reduce automatically enables Lite Mode & pauses drum spin', async ({
+    page,
+  }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await page.setViewportSize({ width: 1920, height: 1080 });
+    const monitors = attachPurityMonitors(page);
+
+    await page.goto('./', { waitUntil: 'networkidle' });
+    await page.evaluate(() => document.fonts.ready);
+    await waitForStageSettled(page, 0);
+
+    const reducedState = await page.evaluate(() => {
+      const state = window.__LHS_DECK__.getState();
+      const drum = document.getElementById('landing-dong-son-svg');
+      const drumAnimState = drum ? window.getComputedStyle(drum).animationPlayState : '';
+      return {
+        isLiteMode: state.isLiteMode,
+        hasLiteClass: document.body.classList.contains('lite-mode'),
+        litePressed: document.getElementById('btn-lite')?.getAttribute('aria-pressed'),
+        drumAnimState,
+      };
+    });
+
+    expect(reducedState.isLiteMode).toBe(true);
+    expect(reducedState.hasLiteClass).toBe(true);
+    expect(reducedState.litePressed).toBe('true');
+    expect(reducedState.drumAnimState).toBe('paused');
+
+    // Stage transition under reduced motion settles cleanly without motion hang
+    await page.click('#btn-start');
+    await waitForStageSettled(page, 1);
+    await page.keyboard.press('ArrowRight');
+    await waitForStageSettled(page, 2);
+    await page.keyboard.press('ArrowRight');
+    await waitForStageSettled(page, 3);
+    await assertStage3PolicyHighlights(page);
 
     expect(monitors.errors).toEqual([]);
     expect(monitors.badResponses).toEqual([]);
